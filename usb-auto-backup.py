@@ -1,10 +1,17 @@
+'''
+left off while fixing:
+
+Traceback (most recent call last):
+  File "/home/sam/programming/scripts/usb-auto-backup.py", line 23, in <module>
+    size_bytes = int(subprocess.check_output(["lsblk", "-b", "-n", "-o", "SIZE", device]).strip())
+ValueError: invalid literal for int() with base 10: b'512074186752\n512040632320'
+
+'''
+
 import os
 import sys
 import subprocess
 from datetime import datetime # for generating timestamps on backup folders
-
-# Device identifier
-device = sys.argv[1]
 
 # Base path for where to save the copied files
 base_path = "/base/path"
@@ -18,6 +25,9 @@ if only_sde:
     if not os.path.exists(device):
         print(f"{device} does not exist. Exiting.")
         sys.exit(0)
+else:
+    # Device identifier
+    device = f"/dev/{sys.argv[1]}"
 
 # Get the size of the device in bytes and convert to TiB (Tebibytes)
 size_bytes = int(subprocess.check_output(["lsblk", "-b", "-n", "-o", "SIZE", device]).strip())
