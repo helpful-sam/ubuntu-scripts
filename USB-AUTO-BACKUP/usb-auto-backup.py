@@ -43,8 +43,8 @@ def main(device):
 
     # Prepare target folders
     date_str = datetime.datetime.now().strftime("%Y.%m.%d-%H:%M:%S")
-    target_folder = os.path.join(BASE_PATH, f"PROCESSING-{mount_point}-{date_str}")
-    finished_folder = os.path.join(BASE_PATH, f"{mount_point}-{date_str}")
+    target_folder = os.path.join(BASE_PATH, f"PROCESSING-{device}-{date_str}")
+    finished_folder = os.path.join(BASE_PATH, f"{device}-{date_str}")
     os.makedirs(target_folder, exist_ok=True)
 
     # Copy files
