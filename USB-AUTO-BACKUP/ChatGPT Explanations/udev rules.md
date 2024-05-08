@@ -4,7 +4,7 @@ To have Ubuntu automatically invoke a script every time a device is plugged in, 
 Ensure your script is executable and located at a suitable path. For example, place it at /usr/local/bin/usb_copy_script.sh. Make sure to mark it as executable:
 
     bash
-    chmod +x /usr/local/bin/usb_copy_script.sh
+    chmod +x /home/usb-auto-backup.py
 
 Your script should handle checking the device size and name, copying files, and ejecting the device. Ensure it can run with root privileges, as udev will execute it as root.
 
@@ -18,7 +18,7 @@ Open a new rule file in the udev rules directory:
 Add the following rule to the file:
 
     plaintext
-    ACTION=="add", SUBSYSTEM=="block", ENV{ID_BUS}=="usb", RUN+="/usr/local/bin/usb_copy_script.sh %k"
+    ACTION=="add", SUBSYSTEM=="block", ENV{ID_BUS}=="usb", RUN+="/home/usb-auto-backup.py %k"
 
 This rule does the following:
 

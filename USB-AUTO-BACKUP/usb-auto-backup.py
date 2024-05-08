@@ -4,6 +4,14 @@ import os
 import datetime
 import subprocess
 
+############################# LOGGING BLOCK #############################
+import sys
+import logging
+
+logging.basicConfig(filename='/var/log/usb_copy.log', level=logging.INFO)
+logging.info(f'Script triggered with device: {sys.argv[1]}')
+############################# LOGGING BLOCK #############################
+
 # Constants
 SIZE_LIMIT = 1.0  # 1.0 TiB
 BASE_PATH = "/home/CONTAINER"  # Base path for backups
@@ -34,7 +42,6 @@ def main(device):
 
         if EJECT_AFTER_COMPLETION:
             subprocess.run(['umount', mount_point])  # Unmount the device if it exceeds the size limit
-        
         return
 
     # Prepare target folders
@@ -52,9 +59,9 @@ def main(device):
         subprocess.run(['umount', device_path])
         subprocess.run(['eject', mount_point])
 
-    # Rename folder upon completion and recursively change owner to the core group
+    # Recursively change owner to the core group and rename after all is done
+    subprocess.run(['chown','-R',':core',target_folder])
     os.rename(target_folder, finished_folder)
-    subprocess.run(['chown','-R',':core',finished_folder])
 
     # Print completion message
     if EJECT_AFTER_COMPLETION:
