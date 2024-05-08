@@ -1,71 +1,68 @@
-'''
-left off while fixing:
-
-Traceback (most recent call last):
-  File "/home/sam/programming/scripts/usb-auto-backup.py", line 23, in <module>
-    size_bytes = int(subprocess.check_output(["lsblk", "-b", "-n", "-o", "SIZE", device]).strip())
-ValueError: invalid literal for int() with base 10: b'512074186752\n512040632320'
-
-'''
-
-import os
+#!/usr/bin/env python3
 import sys
-import subprocess
-from datetime import datetime # for generating timestamps on backup folders
+import os
+import shutil
+import datetime
+from concurrent.futures import ThreadPoolExecutor
+from tqdm import tqdm
 
-# Base path for where to save the copied files
-base_path = "/base/path"
+# Constants
+SIZE_LIMIT = 1.0 * (1024 ** 4)  # 1.0 TiB in bytes
+BASE_PATH = "/path/to/backup"  # Base path for backups
+THREADS = 5  # Number of concurrent threads for copying
 
-# Check if copying only from sde is toggled on
-only_sde = True  # Change this to True if you want to only operate on /dev/sde
-
-if only_sde:
-    device = "/dev/sde"
-    print("Only copying from /dev/sde.")
-    if not os.path.exists(device):
-        print(f"{device} does not exist. Exiting.")
-        sys.exit(0)
-else:
-    # Device identifier
-    device = f"/dev/{sys.argv[1]}"
-
-# Get the size of the device in bytes and convert to TiB (Tebibytes)
-size_bytes = int(subprocess.check_output(["lsblk", "-b", "-n", "-o", "SIZE", device]).strip())
-size_tib = size_bytes / (1024 ** 4)
-
-# Size limit (1 TiB)
-size_limit = 1.0
-
-if size_tib < size_limit:
-    # Mount point for the USB
-    mount_point = f"/mnt/{os.path.basename(device)}"
-
-    # Check if already mounted
-    if subprocess.run(['mountpoint', '-q', mount_point]).returncode == 0:
-        print(f"{device} is already mounted.")
+def copy_contents(src, dst):
+    # Recursively copy files from src to dst using multiple threads
+    if os.path.isdir(src):
+        os.makedirs(dst, exist_ok=True)
+        with ThreadPoolExecutor(max_workers=THREADS) as executor:
+            futures = []
+            for item in os.listdir(src):
+                s = os.path.join(src, item)
+                d = os.path.join(dst, item)
+                if os.path.isdir(s):
+                    futures.append(executor.submit(copy_contents, s, d))
+                else:
+                    futures.append(executor.submit(shutil.copy2, s, d))
+            for future in futures:
+                future.result()
     else:
-        # Create mount point directory
-        os.makedirs(mount_point, exist_ok=True)
-        # Mount the device
-        subprocess.run(["mount", device, mount_point])
+        shutil.copy2(src, dst)
 
-    # Destination directory for the backup, modify it as needed
-    current_date = datetime.now().strftime("%Y-%m-%d")
-    dest_dir = os.path.join(base_path, device, "-", current_date)
+def main(device):
+    device_path = f"/dev/{device}"
+    mount_point = f"/mnt/{device}"
 
-    # Create the destination directory
-    os.makedirs(dest_dir, exist_ok=True)
+    # Mount the device
+    os.makedirs(mount_point, exist_ok=True)
+    os.system(f"mount {device_path} {mount_point}")
 
-    # Copy the contents of the USB to the destination directory
-    subprocess.run(["rsync", "-av", "--progress", f"{mount_point}/", dest_dir])
+    # Determine device size to check against SIZE_LIMIT
+    total_size = os.path.getsize(mount_point)
+    if total_size > SIZE_LIMIT:
+        print(f"Device size ({total_size}) exceeds the limit ({SIZE_LIMIT}).")
+        return
 
-    # Unmount the USB device
-    subprocess.run(["umount", mount_point])
+    # Prepare target folders
+    date_str = datetime.datetime.now().strftime("%Y-%m-%d")
+    target_folder = os.path.join(BASE_PATH, date_str)
+    finished_folder = os.path.join(BASE_PATH, f"FINISHED-{date_str}")
+    os.makedirs(target_folder, exist_ok=True)
 
-    # Eject the USB device
-    subprocess.run(["udisksctl", "power-off", "-b", device])
+    # Copy files
+    print("Copying files...")
+    copy_contents(mount_point, target_folder)
 
-    # Rename the directory to indicate completion
-    os.rename(dest_dir, f"{base_path}/FINISHED-{device}-{current_date}")
-else:
-    print(f"Device size of {size_tib:.2f} TiB exceeds the limit of {size_limit} TiB. No action taken.")
+    # Unmount and eject the device
+    os.system(f"umount {mount_point}")
+    os.system(f"eject {device_path}")
+
+    # Rename folder upon completion
+    os.rename(target_folder, finished_folder)
+    print("Copy complete and device ejected.")
+
+if __name__ == "__main__":
+    if len(sys.argv) < 2:
+        print("Usage: python3 script.py <device_name>")
+    else:
+        main(sys.argv[1])
