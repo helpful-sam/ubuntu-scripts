@@ -67,7 +67,7 @@ def main(device):
         print(f"Finished copying and did not eject {device}.")
 
     ############################# LOGGING BLOCK #############################
-    logging.basicConfig(filename='./usb_copy.log', level=logging.INFO)
+    logging.basicConfig(filename='./copy_history.log', level=logging.INFO)
     logging.info(f'{datetime.datetime.now().strftime("%Y.%m.%d, %H:%M:%S")}: Script triggered with device: {sys.argv[1]}')
     ############################# LOGGING BLOCK #############################
 
