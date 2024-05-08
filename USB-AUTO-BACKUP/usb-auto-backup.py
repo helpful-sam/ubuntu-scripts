@@ -42,7 +42,7 @@ def main(device):
         return
 
     # Prepare target folders
-    date_str = datetime.datetime.now().strftime("%Y-%m-%d")
+    date_str = datetime.datetime.now().strftime("%Y.%m.%d-%H:%M:%S")
     target_folder = os.path.join(BASE_PATH, date_str)
     finished_folder = os.path.join(BASE_PATH, f"FINISHED-{date_str}")
     os.makedirs(target_folder, exist_ok=True)
@@ -68,7 +68,7 @@ def main(device):
 
     ############################# LOGGING BLOCK #############################
     logging.basicConfig(filename='./copy_history.log', level=logging.INFO)
-    logging.info(f'{datetime.datetime.now().strftime("%Y.%m.%d, %H:%M:%S")}: Script triggered with device: {sys.argv[1]}')
+    logging.info(f'{datetime.datetime.now().strftime("%Y.%m.%d, %H:%M:%S")} - Script triggered with device: {sys.argv[1]}')
     ############################# LOGGING BLOCK #############################
 
 # Detect if argument was passed and run the script; print usage if no arguments
