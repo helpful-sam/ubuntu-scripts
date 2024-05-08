@@ -7,9 +7,6 @@ import subprocess
 ############################# LOGGING BLOCK #############################
 import sys
 import logging
-
-logging.basicConfig(filename='/var/log/usb_copy.log', level=logging.INFO)
-logging.info(f'Script triggered with device: {sys.argv[1]}')
 ############################# LOGGING BLOCK #############################
 
 # Constants
@@ -68,6 +65,11 @@ def main(device):
         print(f"Finished copying and ejected {device}.")
     else:
         print(f"Finished copying and did not eject {device}.")
+
+    ############################# LOGGING BLOCK #############################
+    logging.basicConfig(filename='./usb_copy.log', level=logging.INFO)
+    logging.info(f'{datetime.datetime.now().strftime("%Y.%m.%d, %H:%M:%S")}: Script triggered with device: {sys.argv[1]}')
+    ############################# LOGGING BLOCK #############################
 
 # Detect if argument was passed and run the script; print usage if no arguments
 if __name__ == "__main__":
