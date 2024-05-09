@@ -1,0 +1,1 @@
+ACTION=="add", SUBSYSTEM=="usb", ENV{ID_BUS}=="usb", RUN+="/home/sam/programming/scripts/USB-AUTO-BACKUP/usb-auto-backup.py %k"
