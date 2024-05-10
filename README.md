@@ -4,7 +4,11 @@
 
 ### USB-AUTO-BACKUP
 
-1. udev rule triggers when running '''udevadm test --action=add /dev/sdd''' but does not work when USB is physically plugged in
+1. udev rule triggers when running:
+'''
+udevadm test --action=add /dev/sdd
+''' 
+   but does not work when USB is physically plugged in
 
 # SOLVED ISSUES
 
